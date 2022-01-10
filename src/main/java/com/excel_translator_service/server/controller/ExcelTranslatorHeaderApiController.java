@@ -74,6 +74,22 @@ public class ExcelTranslatorHeaderApiController {
     }
 
     /**
+     * Change one api for excel translator header.
+     * 
+     * @see ExcelTranslatorHeaderService#changeOne
+     */
+    @PutMapping("/one")
+    public ResponseEntity<?> changeExcelTranslatorHeader(@RequestBody ExcelTranslatorHeaderGetDto dto) {
+        Message message = new Message();
+
+        excelTranslatorHeaderService.changeOne(dto);
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    /**
      * Upload a free-form excel file.
      * 
      * @param file : MultipartFile
@@ -107,9 +123,13 @@ public class ExcelTranslatorHeaderApiController {
     public ResponseEntity<?> updateUploadHeaderDetailOfExcelTranslator(@RequestBody ExcelTranslatorHeaderGetDto dto) {
         Message message = new Message();
 
-        excelTranslatorHeaderService.updateUploadHeaderDetailOfExcelTranslator(dto);
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
+        try {
+            excelTranslatorHeaderService.updateUploadHeaderDetailOfExcelTranslator(dto);
+            message.setStatus(HttpStatus.OK);
+            message.setMessage("success");
+        } catch (NullPointerException e) {
+            throw new ExcelFileUploadException("올바르지 않은 값이 존재합니다. 다시 등록해주세요.");
+        }
 
         return new ResponseEntity<>(message, message.getStatus());
     }

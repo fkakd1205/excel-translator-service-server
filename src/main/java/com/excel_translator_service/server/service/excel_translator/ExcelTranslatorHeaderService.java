@@ -39,10 +39,12 @@ public class ExcelTranslatorHeaderService {
      * 
      * @param dto : ExcelTranslatorHeaderGetDto
      * @return ExcelTranslatorHeaderGetDto
+     * @see ExcelTranslatorHeaderEntity#toEntity
+     * @see ExcelTranslatorHeaderGetDto#toDto
      */
     public ExcelTranslatorHeaderGetDto createTitle(ExcelTranslatorHeaderGetDto dto) {
         ExcelTranslatorHeaderEntity entity = ExcelTranslatorHeaderEntity.toEntity(dto);
-        excelTranslatorHeaderRepository.save(entity);
+        entity = excelTranslatorHeaderRepository.save(entity);
         ExcelTranslatorHeaderGetDto savedDto = ExcelTranslatorHeaderGetDto.toDto(entity);
         return savedDto;
     }
@@ -52,11 +54,32 @@ public class ExcelTranslatorHeaderService {
      * 엑셀 변환기 헤더 데이터를 조회한다.
      * 
      * @return List::ExcelTranslatorHeaderGetDto::
+     * @see ExcelTranslatorHeaderGetDto#toDto
      */
     public List<ExcelTranslatorHeaderGetDto> searchList() {
         List<ExcelTranslatorHeaderEntity> entities = excelTranslatorHeaderRepository.findAll();
         List<ExcelTranslatorHeaderGetDto> dtos = entities.stream().map(r -> ExcelTranslatorHeaderGetDto.toDto(r)).collect(Collectors.toList());
         return dtos;
+    }
+
+    /**
+     * <b>DB Update Related Method</b>
+     * 생성된 엑셀 변환기의 타이틀 및 데이터 시작행을 수정한다.
+     * 
+     * @param dto : ExcelTranslatorHeaderGetDto
+     * @see ExcelTranslatorHeaderRepository#findById
+     * @see ExcelTranslatorHeaderRepository#save
+     */
+    public void changeOne(ExcelTranslatorHeaderGetDto dto) {
+        ExcelTranslatorHeaderEntity entity = ExcelTranslatorHeaderEntity.toEntity(dto);
+
+        excelTranslatorHeaderRepository.findById(entity.getId()).ifPresent(header -> {
+            header.setDownloadHeaderTitle(entity.getDownloadHeaderTitle())
+                .setUploadHeaderTitle(entity.getUploadHeaderTitle())
+                .setRowStartNumber(entity.getRowStartNumber());
+
+            excelTranslatorHeaderRepository.save(header);
+        });
     }
 
     /**
@@ -104,6 +127,7 @@ public class ExcelTranslatorHeaderService {
 
             for(int j = 0; j < row.getLastCellNum(); j++) {
                 Cell cell = row.getCell(j);
+
                 Object cellObj = new Object();
 
                 if(cell == null || cell.getCellType().equals(CellType.BLANK)) {

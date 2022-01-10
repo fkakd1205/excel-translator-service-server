@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExcelTranslatorHeaderRepository extends JpaRepository<ExcelTranslatorHeaderEntity, Integer> {
     
-    Optional<ExcelTranslatorHeaderEntity> findById(UUID id);
+    public Optional<ExcelTranslatorHeaderEntity> findById(UUID id);
 }
