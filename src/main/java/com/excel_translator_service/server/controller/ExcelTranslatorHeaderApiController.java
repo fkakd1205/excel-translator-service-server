@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -23,6 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -83,6 +85,22 @@ public class ExcelTranslatorHeaderApiController {
         Message message = new Message();
 
         excelTranslatorHeaderService.changeOne(dto);
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    /**
+     * Delete one api for excel translator header.
+     * 
+     * @see ExcelTranslatorHeaderService#deleteOne
+     */
+    @DeleteMapping("/one")
+    public ResponseEntity<?> deleteExcelTranslatorHeader(@RequestParam Map<String, Object> query) {
+        Message message = new Message();
+
+        excelTranslatorHeaderService.deleteOne(query);
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 

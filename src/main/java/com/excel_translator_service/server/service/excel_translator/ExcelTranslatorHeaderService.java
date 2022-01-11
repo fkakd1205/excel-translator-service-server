@@ -3,6 +3,7 @@ package com.excel_translator_service.server.service.excel_translator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -81,6 +82,23 @@ public class ExcelTranslatorHeaderService {
             excelTranslatorHeaderRepository.save(header);
         });
     }
+
+    /**
+     * <b>DB Delete Related Method</b>
+     * headerId에 대응하는 엑셀 변환기 데이터를 삭제한다.
+     * 
+     * @param dto : ExcelTranslatorHeaderGetDto
+     * @see ExcelTranslatorHeaderRepository#findById
+     * @see ExcelTranslatorHeaderRepository#save
+     */
+    public void deleteOne(Map<String, Object> query) {
+        UUID headerId = UUID.fromString(query.get("headerId").toString());
+
+        excelTranslatorHeaderRepository.findById(headerId).ifPresent(header -> {
+            excelTranslatorHeaderRepository.delete(header);
+        });
+    }
+
 
     /**
      * <b>Data Processing Related Method</b>
