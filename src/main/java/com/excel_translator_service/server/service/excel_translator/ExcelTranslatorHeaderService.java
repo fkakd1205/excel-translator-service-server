@@ -160,13 +160,14 @@ public class ExcelTranslatorHeaderService {
                     }
                 }
 
+                // 등록된 양식과 다른 엑셀이라면
                 if(uploadDetailDtos.size() > 0 && i == dto.getRowStartNumber()-1) {
                     if(!uploadDetailDtos.get(j).getHeaderName().equals(cellObj.toString())){
                         throw new IllegalArgumentException();
                     }
                 }
 
-                UploadedDetailDto detailDto = UploadedDetailDto.builder().colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
+                UploadedDetailDto detailDto = UploadedDetailDto.builder().id(UUID.randomUUID()).colData(cellObj).cellType(cellObj.getClass().getSimpleName()).build();  
                 uploadedDetailDtos.add(detailDto);
             }
             UploadExcelDataDetailDto uploadedData = UploadExcelDataDetailDto.builder().details(uploadedDetailDtos).build();

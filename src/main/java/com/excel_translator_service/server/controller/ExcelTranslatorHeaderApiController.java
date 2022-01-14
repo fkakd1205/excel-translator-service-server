@@ -94,6 +94,7 @@ public class ExcelTranslatorHeaderApiController {
     /**
      * Delete one api for excel translator header.
      * 
+     * @query query : Map::String, Object::
      * @see ExcelTranslatorHeaderService#deleteOne
      */
     @DeleteMapping("/one")
@@ -214,6 +215,44 @@ public class ExcelTranslatorHeaderApiController {
                     throw new ExcelFileUploadException("데이터 변환에 오류가 생겼습니다. 다시 시도해주세요.");
                 }
             }
+        }
+
+        for(int i = 0; i < dtos.size(); i++){
+            sheet.autoSizeColumn(i);
+        }
+
+        response.setContentType("ms-vnd/excel");
+        response.setHeader("Content-Disposition", "attachment;filename=example.xlsx");
+
+        try{
+            workbook.write(response.getOutputStream());
+            workbook.close();
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Download excel file.
+     * 
+     * @param response : HttpServletResponse
+     * @param dtos : List::DownloadExcelDataGetDto::
+     */
+    @PostMapping("/header/upload/download")
+    public void downloadUploadedDetails(HttpServletResponse response, @RequestBody List<UploadedDetailDto> dtos) {
+
+        // 엑셀 생성
+        Workbook workbook = new XSSFWorkbook();     // .xlsx
+        Sheet sheet = workbook.createSheet("Sheet1");
+        Row row = null;
+        Cell cell = null;
+
+        row = sheet.createRow(0);
+
+        for(int i = 0; i < dtos.size(); i++) {
+            cell = row.createCell(i);
+
+            cell.setCellValue(dtos.get(i).getColData().toString());
         }
 
         for(int i = 0; i < dtos.size(); i++){
