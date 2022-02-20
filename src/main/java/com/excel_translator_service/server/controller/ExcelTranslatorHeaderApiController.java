@@ -251,11 +251,7 @@ public class ExcelTranslatorHeaderApiController {
 
         for(int i = 0; i < dtos.size(); i++) {
             cell = row.createCell(i);
-
             cell.setCellValue(dtos.get(i).getColData().toString());
-        }
-
-        for(int i = 0; i < dtos.size(); i++){
             sheet.autoSizeColumn(i);
         }
 

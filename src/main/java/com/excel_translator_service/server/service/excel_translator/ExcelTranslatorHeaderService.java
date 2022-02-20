@@ -133,8 +133,9 @@ public class ExcelTranslatorHeaderService {
         List<UploadExcelDataGetDto> dtos = new ArrayList<>();
         List<UploadDetailDto> uploadDetailDtos = dto.getUploadHeaderDetail().getDetails();
 
-        // 저장된 양식의 엑셀파일로 업로드 되지 않은 경우
-        if(uploadDetailDtos.size() != dto.getUploadHeaderDetail().getDetails().size()) {
+        Row headerRow = worksheet.getRow(dto.getRowStartNumber()-1);
+        // 저장된 양식이 존재하는데 지정양식과 다른 엑셀이 업로드된 경우
+        if(uploadDetailDtos.size() != 0 && uploadDetailDtos.size() != headerRow.getLastCellNum()) {
             throw new IllegalArgumentException();
         }
 
