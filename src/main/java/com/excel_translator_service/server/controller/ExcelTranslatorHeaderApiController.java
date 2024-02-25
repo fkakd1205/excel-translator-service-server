@@ -5,7 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,13 +63,13 @@ public class ExcelTranslatorHeaderApiController {
     /**
      * Search list api for excel translator header.
      * 
-     * @see ExcelTranslatorHeaderService#searchList
+     * @see ExcelTranslatorHeaderService#searchAll
      */
-    @GetMapping("/list")
+    @GetMapping("/all")
     public ResponseEntity<?> searchExcelTranslatorHeader() {
         Message message = new Message();
 
-        message.setData(excelTranslatorHeaderService.searchList());
+        message.setData(excelTranslatorHeaderService.searchAll());
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
@@ -94,14 +95,14 @@ public class ExcelTranslatorHeaderApiController {
     /**
      * Delete one api for excel translator header.
      * 
-     * @query query : Map::String, Object::
+     * @param headerId : UUID
      * @see ExcelTranslatorHeaderService#deleteOne
      */
-    @DeleteMapping("/one")
-    public ResponseEntity<?> deleteExcelTranslatorHeader(@RequestParam Map<String, Object> query) {
+    @DeleteMapping("/one/{headerId}")
+    public ResponseEntity<?> deleteExcelTranslatorHeader(@PathVariable UUID headerId) {
         Message message = new Message();
 
-        excelTranslatorHeaderService.deleteOne(query);
+        excelTranslatorHeaderService.deleteOne(headerId);
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 
@@ -191,6 +192,10 @@ public class ExcelTranslatorHeaderApiController {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 
+        for(int i = 0; i < dtos.size(); i++){
+            sheet.autoSizeColumn(i);
+        }
+        
         for(int i = 0; i < dtos.size(); i++) {
             for(int j = 0; j < dtos.get(i).getTranslatedData().getDetails().size(); j++) {
                 // 엑셀 데이터는 header의 다음 row부터 기입
@@ -217,10 +222,6 @@ public class ExcelTranslatorHeaderApiController {
             }
         }
 
-        for(int i = 0; i < dtos.size(); i++){
-            sheet.autoSizeColumn(i);
-        }
-
         response.setContentType("ms-vnd/excel");
         response.setHeader("Content-Disposition", "attachment;filename=example.xlsx");
 
@@ -236,7 +237,7 @@ public class ExcelTranslatorHeaderApiController {
      * Download excel file.
      * 
      * @param response : HttpServletResponse
-     * @param dtos : List::DownloadExcelDataGetDto::
+     * @param dtos : List::UploadedDetailDto::
      */
     @PostMapping("/header/upload/download")
     public void downloadUploadedDetails(HttpServletResponse response, @RequestBody List<UploadedDetailDto> dtos) {
@@ -251,8 +252,9 @@ public class ExcelTranslatorHeaderApiController {
 
         for(int i = 0; i < dtos.size(); i++) {
             cell = row.createCell(i);
-            cell.setCellValue(dtos.get(i).getColData().toString());
+            // cell에 데이터를 입력하기 전에 autoSizeColumn설정
             sheet.autoSizeColumn(i);
+            cell.setCellValue(dtos.get(i).getColData().toString());
         }
 
         response.setContentType("ms-vnd/excel");

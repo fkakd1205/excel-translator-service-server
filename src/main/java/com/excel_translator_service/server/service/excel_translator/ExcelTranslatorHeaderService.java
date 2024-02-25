@@ -39,15 +39,11 @@ public class ExcelTranslatorHeaderService {
      * 
      * 
      * @param dto : ExcelTranslatorHeaderGetDto
-     * @return ExcelTranslatorHeaderGetDto
      * @see ExcelTranslatorHeaderEntity#toEntity
-     * @see ExcelTranslatorHeaderGetDto#toDto
      */
-    public ExcelTranslatorHeaderGetDto createTitle(ExcelTranslatorHeaderGetDto dto) {
+    public void createTitle(ExcelTranslatorHeaderGetDto dto) {
         ExcelTranslatorHeaderEntity entity = ExcelTranslatorHeaderEntity.toEntity(dto);
-        entity = excelTranslatorHeaderRepository.save(entity);
-        ExcelTranslatorHeaderGetDto savedDto = ExcelTranslatorHeaderGetDto.toDto(entity);
-        return savedDto;
+        excelTranslatorHeaderRepository.save(entity);
     }
 
     /**
@@ -57,7 +53,7 @@ public class ExcelTranslatorHeaderService {
      * @return List::ExcelTranslatorHeaderGetDto::
      * @see ExcelTranslatorHeaderGetDto#toDto
      */
-    public List<ExcelTranslatorHeaderGetDto> searchList() {
+    public List<ExcelTranslatorHeaderGetDto> searchAll() {
         List<ExcelTranslatorHeaderEntity> entities = excelTranslatorHeaderRepository.findAll();
         List<ExcelTranslatorHeaderGetDto> dtos = entities.stream().map(r -> ExcelTranslatorHeaderGetDto.toDto(r)).collect(Collectors.toList());
         return dtos;
@@ -87,18 +83,15 @@ public class ExcelTranslatorHeaderService {
      * <b>DB Delete Related Method</b>
      * headerId에 대응하는 엑셀 변환기 데이터를 삭제한다.
      * 
-     * @param dto : ExcelTranslatorHeaderGetDto
+     * @param headerId : UUID
      * @see ExcelTranslatorHeaderRepository#findById
-     * @see ExcelTranslatorHeaderRepository#save
+     * @see ExcelTranslatorHeaderRepository#delete
      */
-    public void deleteOne(Map<String, Object> query) {
-        UUID headerId = UUID.fromString(query.get("headerId").toString());
-
+    public void deleteOne(UUID headerId) {
         excelTranslatorHeaderRepository.findById(headerId).ifPresent(header -> {
             excelTranslatorHeaderRepository.delete(header);
         });
     }
-
 
     /**
      * <b>Data Processing Related Method</b>
