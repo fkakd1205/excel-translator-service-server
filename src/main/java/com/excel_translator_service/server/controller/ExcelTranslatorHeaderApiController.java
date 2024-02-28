@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.excel_translator_service.server.exception.ExcelFileUploadException;
 import com.excel_translator_service.server.model.excel_translator_data.dto.DownloadExcelDataGetDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadedDetailDto;
+import com.excel_translator_service.server.model.excel_translator_header.dto.DownloadDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.excel_translator_service.server.model.message.Message;
@@ -159,14 +160,15 @@ public class ExcelTranslatorHeaderApiController {
     /**
      * Change one api for download detail of excel translator header.
      * 
-     * @param dto : ExcelTranslatorHeaderGetDto
-     * @see ExcelTranslatorHeaderService#updateDownloadHeaderDetailOfExcelTranslator
+     * @param headerId : UUID
+     * @param dtos : List::DownloadDetailDto::
+     * @see ExcelTranslatorHeaderService#updateDownloadHeaderDetail
      */
-    @PutMapping("/header/download/one")
-    public ResponseEntity<?> updateDownloadHeaderDetailOfExcelTranslator(@RequestBody ExcelTranslatorHeaderGetDto dto) {
+    @PutMapping("/header/download/one/{headerId}")
+    public ResponseEntity<?> updateDownloadHeaderDetail(@PathVariable UUID headerId, @RequestBody List<DownloadDetailDto> dtos) {
         Message message = new Message();
 
-        excelTranslatorHeaderService.updateDownloadHeaderDetailOfExcelTranslator(dto);
+        excelTranslatorHeaderService.updateDownloadHeaderDetail(headerId, dtos);
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
 

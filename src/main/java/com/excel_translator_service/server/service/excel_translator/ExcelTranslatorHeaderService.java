@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDataDetailDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDataGetDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadedDetailDto;
+import com.excel_translator_service.server.model.excel_translator_header.dto.DownloadDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.entity.ExcelTranslatorHeaderEntity;
@@ -211,14 +212,15 @@ public class ExcelTranslatorHeaderService {
      * <b>DB Update Related Method</b>
      * 엑셀 변환기 헤더 데이터의 다운로드 헤더 상세를 업데이트한다.
      * 
-     * @param dto : ExcelTranslatorHeaderGetDto
+     * @param headerId : UUID
+     * @param dtos : List::DownloadDetailDto::
      */
-    public void updateDownloadHeaderDetailOfExcelTranslator(ExcelTranslatorHeaderGetDto dto) {
-        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(dto.getId());
+    public void updateDownloadHeaderDetail(UUID headerId, List<DownloadDetailDto> dtos) {
+        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(headerId);
 
         if (entityOpt.isPresent()) {
             ExcelTranslatorHeaderEntity entity = entityOpt.get();
-            entity.setDownloadHeaderDetail(dto.getDownloadHeaderDetail());
+            entity.getDownloadHeaderDetail().setDetails(dtos);
             excelTranslatorHeaderRepository.save(entity);
         } else {
             throw new NullPointerException();
