@@ -13,6 +13,7 @@ import com.excel_translator_service.server.exception.ExcelFileUploadException;
 import com.excel_translator_service.server.model.excel_translator_data.dto.DownloadExcelDataGetDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadedDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
+import com.excel_translator_service.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.excel_translator_service.server.model.message.Message;
 import com.excel_translator_service.server.service.excel_translator.ExcelTranslatorHeaderService;
 
@@ -136,15 +137,16 @@ public class ExcelTranslatorHeaderApiController {
     /**
      * Change one api for upload detail of excel translator header.
      * 
-     * @param dto : ExcelTranslatorHeaderGetDto
-     * @see ExcelTranslatorHeaderService#updateUploadHeaderDetailOfExcelTranslator
+     * @param headerId : UUID
+     * @param dtos : List::UploadDetailDto::
+     * @see ExcelTranslatorHeaderService#updateUploadHeaderDetail
      */
-    @PutMapping("/header/upload/one")
-    public ResponseEntity<?> updateUploadHeaderDetailOfExcelTranslator(@RequestBody ExcelTranslatorHeaderGetDto dto) {
+    @PutMapping("/header/upload/one/{headerId}")
+    public ResponseEntity<?> updateUploadHeaderDetails(@PathVariable UUID headerId, @RequestBody List<UploadDetailDto> dtos) {
         Message message = new Message();
 
         try {
-            excelTranslatorHeaderService.updateUploadHeaderDetailOfExcelTranslator(dto);
+            excelTranslatorHeaderService.updateUploadHeaderDetails(headerId, dtos);
             message.setStatus(HttpStatus.OK);
             message.setMessage("success");
         } catch (NullPointerException e) {
@@ -179,7 +181,6 @@ public class ExcelTranslatorHeaderApiController {
      */
     @PostMapping("/download")
     public void downloadExcelFile(HttpServletResponse response, @RequestBody List<DownloadExcelDataGetDto> dtos) {
-
         // 엑셀 생성
         Workbook workbook = new XSSFWorkbook();     // .xlsx
         Sheet sheet = workbook.createSheet("Sheet1");
@@ -237,10 +238,12 @@ public class ExcelTranslatorHeaderApiController {
      * Download excel file.
      * 
      * @param response : HttpServletResponse
-     * @param dtos : List::UploadedDetailDto::
+     * @param headerId : UUID
      */
-    @PostMapping("/header/upload/download")
-    public void downloadUploadedDetails(HttpServletResponse response, @RequestBody List<UploadedDetailDto> dtos) {
+    @GetMapping("/header/upload/download/{headerId}")
+    public void downloadUploadedDetails(HttpServletResponse response, @PathVariable UUID headerId) {
+        ExcelTranslatorHeaderGetDto dto = excelTranslatorHeaderService.searchOne(headerId);
+        List<UploadDetailDto> dtos = dto.getUploadHeaderDetail().getDetails();
 
         // 엑셀 생성
         Workbook workbook = new XSSFWorkbook();     // .xlsx
@@ -254,7 +257,7 @@ public class ExcelTranslatorHeaderApiController {
             cell = row.createCell(i);
             // cell에 데이터를 입력하기 전에 autoSizeColumn설정
             sheet.autoSizeColumn(i);
-            cell.setCellValue(dtos.get(i).getColData().toString());
+            cell.setCellValue(dtos.get(i).getHeaderName());
         }
 
         response.setContentType("ms-vnd/excel");

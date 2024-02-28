@@ -3,7 +3,6 @@ package com.excel_translator_service.server.service.excel_translator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,6 +31,24 @@ public class ExcelTranslatorHeaderService {
     
     @Autowired
     private ExcelTranslatorHeaderRepository excelTranslatorHeaderRepository;
+
+    /**
+     * <b>DB Insert Related Method</b>
+     * headerId에 대응되는 엑셀 변환기 데이터 조회
+     * 
+     * @param headerId : UUID
+     * @return ExcelTranslatorHeaderGetDto
+     * @see ExcelTranslatorHeaderGetDto#toDto
+     */
+    public ExcelTranslatorHeaderGetDto searchOne(UUID headerId) {
+        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(headerId);
+
+        if (entityOpt.isPresent()) {
+            return ExcelTranslatorHeaderGetDto.toDto(entityOpt.get());
+        } else {
+            throw new NullPointerException();
+        }
+    }
 
     /**
      * <b>DB Insert Related Method</b>
@@ -175,14 +192,15 @@ public class ExcelTranslatorHeaderService {
      * <b>DB Update Related Method</b>
      * 엑셀 변환기 헤더 데이터의 업로드 헤더 상세를 업데이트한다.
      * 
-     * @param dto : ExcelTranslatorHeaderGetDto
+     * @param headerId : UUID
+     * @param dtos : List::UploadDetailDto::
      */
-    public void updateUploadHeaderDetailOfExcelTranslator(ExcelTranslatorHeaderGetDto dto) {
-        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(dto.getId());
+    public void updateUploadHeaderDetails(UUID headerId, List<UploadDetailDto> dtos) {
+        Optional<ExcelTranslatorHeaderEntity> entityOpt = excelTranslatorHeaderRepository.findById(headerId);
 
         if (entityOpt.isPresent()) {
             ExcelTranslatorHeaderEntity entity = entityOpt.get();
-            entity.setUploadHeaderDetail(dto.getUploadHeaderDetail());
+            entity.getUploadHeaderDetail().setDetails(dtos);
             excelTranslatorHeaderRepository.save(entity);
         } else {
             throw new NullPointerException();
