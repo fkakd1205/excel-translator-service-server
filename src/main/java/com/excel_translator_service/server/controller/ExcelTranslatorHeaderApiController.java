@@ -10,7 +10,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletResponse;
 
 import com.excel_translator_service.server.exception.ExcelFileUploadException;
-import com.excel_translator_service.server.model.excel_translator_data.dto.DownloadExcelDataGetDto;
+import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDataGetDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadedDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.DownloadDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
@@ -179,10 +179,14 @@ public class ExcelTranslatorHeaderApiController {
      * Download excel file.
      * 
      * @param response : HttpServletResponse
-     * @param dtos : List::DownloadExcelDataGetDto::
+     * @param headerId : UUID
+     * @param dtos : List::UploadExcelDataGetDto::
      */
-    @PostMapping("/download")
-    public void downloadExcelFile(HttpServletResponse response, @RequestBody List<DownloadExcelDataGetDto> dtos) {
+    @PostMapping("/download/{headerId}")
+    public void downloadExcelFile(HttpServletResponse response, @PathVariable UUID headerId, @RequestBody List<UploadExcelDataGetDto> dtos) {
+        ExcelTranslatorHeaderGetDto dto = excelTranslatorHeaderService.searchOne(headerId);
+        List<DownloadDetailDto> downloadDetailDtos = dto.getDownloadHeaderDetail().getDetails();
+        
         // 엑셀 생성
         Workbook workbook = new XSSFWorkbook();     // .xlsx
         Sheet sheet = workbook.createSheet("Sheet1");
@@ -194,33 +198,42 @@ public class ExcelTranslatorHeaderApiController {
         // 날짜 변환 형식 지정
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-
-        for(int i = 0; i < dtos.size(); i++){
-            sheet.autoSizeColumn(i);
-        }
         
-        for(int i = 0; i < dtos.size(); i++) {
-            for(int j = 0; j < dtos.get(i).getTranslatedData().getDetails().size(); j++) {
+        for (int i = 0; i < downloadDetailDtos.size(); i++) {
+            DownloadDetailDto downloadDetailDto = downloadDetailDtos.get(i);
+            // 첫번째 row에 헤더 값 세팅
+            row = sheet.getRow(0);
+            cell = row.createCell(i);
+            sheet.autoSizeColumn(i);
+            cell.setCellValue(downloadDetailDto.getHeaderName());
+            
+            // 업로드된 엑셀 데이터 변환
+            for (int j = 0; j < dtos.size(); j++) {
                 // 엑셀 데이터는 header의 다음 row부터 기입
-                row = sheet.getRow(j);
-                if(row == null) {
-                    row = sheet.createRow(j);
+                row = sheet.getRow(j+1);
+                if (row == null) {
+                    row = sheet.createRow(j+1);
                 }
                 cell = row.createCell(i);
-                
-                // 데이터 타입에 맞춰 엑셀 항목 작성.
-                UploadedDetailDto detailDto = dtos.get(i).getTranslatedData().getDetails().get(j);
-                try{
-                    if(detailDto.getCellType().equals("String")) {
-                        cell.setCellValue(detailDto.getColData().toString());
-                    }else if(detailDto.getCellType().equals("Date")) {
-                        Date data = format.parse(detailDto.getColData().toString());
-                        cell.setCellValue(outputFormat.format(data));
-                    }else if(detailDto.getCellType().equals("Double")) {
-                        cell.setCellValue((int)detailDto.getColData());
+                sheet.autoSizeColumn(i);
+
+                // 고정값 컬럼이라면 고정값 설정
+                if (downloadDetailDto.getTargetCellNumber() == -1) {
+                    cell.setCellValue(downloadDetailDto.getFixedValue());
+                } else {
+                    UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(downloadDetailDto.getTargetCellNumber());
+                    try {
+                        if (detailDto.getCellType().equals("String")) {
+                            cell.setCellValue(detailDto.getColData().toString());
+                        } else if (detailDto.getCellType().equals("Date")) {
+                            Date data = format.parse(detailDto.getColData().toString());
+                            cell.setCellValue(outputFormat.format(data));
+                        } else if (detailDto.getCellType().equals("Double")) {
+                            cell.setCellValue((int) detailDto.getColData());
+                        }
+                    } catch (ParseException e) {
+                        throw new ExcelFileUploadException("데이터 변환에 오류가 생겼습니다. 다시 시도해주세요.");
                     }
-                } catch(ParseException e) {
-                    throw new ExcelFileUploadException("데이터 변환에 오류가 생겼습니다. 다시 시도해주세요.");
                 }
             }
         }
