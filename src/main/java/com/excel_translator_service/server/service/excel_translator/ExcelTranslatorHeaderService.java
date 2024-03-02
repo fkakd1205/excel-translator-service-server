@@ -146,12 +146,13 @@ public class ExcelTranslatorHeaderService {
 
         Row headerRow = worksheet.getRow(dto.getRowStartNumber()-1);
         // 저장된 양식이 존재하는데 지정양식과 다른 엑셀이 업로드된 경우
+        // TODO :: 엑셀 업로더 양식 검사 로직 추가하기
         if(uploadDetailDtos.size() != 0 && uploadDetailDtos.size() != headerRow.getLastCellNum()) {
             throw new IllegalArgumentException();
         }
 
         // 저장된 데이터 시작행부터 엑셀을 읽는다.
-        for(int i = dto.getRowStartNumber()-1; i < worksheet.getPhysicalNumberOfRows(); i++) {
+        for(int i = dto.getRowStartNumber(); i < worksheet.getPhysicalNumberOfRows(); i++) {
             Row row = worksheet.getRow(i);
             List<UploadedDetailDto> uploadedDetailDtos = new ArrayList<>();
 
@@ -192,6 +193,7 @@ public class ExcelTranslatorHeaderService {
     /**
      * <b>DB Update Related Method</b>
      * 엑셀 변환기 헤더 데이터의 업로드 헤더 상세를 업데이트한다.
+     * 업로드 헤더 상세를 변경한 후 다운로드 헤더 상세는 초기화시킨다.
      * 
      * @param headerId : UUID
      * @param dtos : List::UploadDetailDto::
@@ -202,6 +204,7 @@ public class ExcelTranslatorHeaderService {
         if (entityOpt.isPresent()) {
             ExcelTranslatorHeaderEntity entity = entityOpt.get();
             entity.getUploadHeaderDetail().setDetails(dtos);
+            entity.getDownloadHeaderDetail().setDetails(new ArrayList<>());
             excelTranslatorHeaderRepository.save(entity);
         } else {
             throw new NullPointerException();
