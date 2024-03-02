@@ -6,16 +6,18 @@ import com.excel_translator_service.server.model.excel_translator_header.entity.
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
-@Data
+@Getter
+@ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class ExcelTranslatorHeaderGetDto {
+public class ExcelTranslatorHeaderDto {
     private Integer cid;
     private UUID id;
     private String uploadHeaderTitle;
@@ -24,8 +26,8 @@ public class ExcelTranslatorHeaderGetDto {
     private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
     private Integer rowStartNumber;
 
-    public static ExcelTranslatorHeaderGetDto toDto(ExcelTranslatorHeaderEntity entity) {
-        ExcelTranslatorHeaderGetDto dto = ExcelTranslatorHeaderGetDto.builder()
+    public static ExcelTranslatorHeaderDto toDto(ExcelTranslatorHeaderEntity entity) {
+        ExcelTranslatorHeaderDto dto = ExcelTranslatorHeaderDto.builder()
             .id(entity.getId())
             .uploadHeaderTitle(entity.getUploadHeaderTitle())
             .downloadHeaderTitle(entity.getDownloadHeaderTitle())

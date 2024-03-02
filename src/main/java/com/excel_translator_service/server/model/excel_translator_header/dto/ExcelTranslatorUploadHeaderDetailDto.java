@@ -6,16 +6,18 @@ import org.hibernate.annotations.Type;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
 @Builder
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Accessors(chain = true)
 public class ExcelTranslatorUploadHeaderDetailDto {
+    @Setter
     @Type(type = "jsonb")
     private List<UploadDetailDto> details;
 }

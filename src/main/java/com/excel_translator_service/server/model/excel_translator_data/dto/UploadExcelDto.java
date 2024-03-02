@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class DownloadExcelDataGetDto {
+public class UploadExcelDto {
     private UUID id;
-    private UploadExcelDataDetailDto translatedData = new UploadExcelDataDetailDto();
+    private UploadExcelDataDetailDto uploadedData = new UploadExcelDataDetailDto();
 }

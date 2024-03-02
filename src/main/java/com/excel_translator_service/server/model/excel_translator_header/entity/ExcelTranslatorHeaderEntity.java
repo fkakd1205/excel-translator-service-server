@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorUploadHeaderDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorDownloadHeaderDetailDto;
-import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderGetDto;
+import com.excel_translator_service.server.model.excel_translator_header.dto.ExcelTranslatorHeaderDto;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 
 import org.hibernate.annotations.Type;
@@ -19,19 +19,22 @@ import org.hibernate.annotations.TypeDef;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 
 @Entity
-@Data
-@Table(name = "excel_translator_header")
-@Accessors(chain = true)
+@Getter
+@ToString
 @Builder
+@Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @TypeDef(name = "json", typeClass = JsonStringType.class)
+@Table(name = "excel_translator_header")
 public class ExcelTranslatorHeaderEntity {
 
     @Id
@@ -43,24 +46,29 @@ public class ExcelTranslatorHeaderEntity {
     @Column(name = "id")
     private UUID id;
 
+    @Setter
     @Column(name = "upload_header_title")
     private String uploadHeaderTitle;
 
+    @Setter
     @Column(name = "download_header_title")
     private String downloadHeaderTitle;
 
+    @Setter
     @Type(type = "json")
     @Column(name = "upload_header_detail", columnDefinition = "json")
     private ExcelTranslatorUploadHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorUploadHeaderDetailDto();
 
+    @Setter
     @Type(type = "json")
     @Column(name = "download_header_detail", columnDefinition = "json")
     private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
 
+    @Setter
     @Column(name = "row_start_number")
     private Integer rowStartNumber;
 
-    public static ExcelTranslatorHeaderEntity toEntity(ExcelTranslatorHeaderGetDto dto) {
+    public static ExcelTranslatorHeaderEntity toEntity(ExcelTranslatorHeaderDto dto) {
         ExcelTranslatorHeaderEntity entity = ExcelTranslatorHeaderEntity.builder()
             .id(dto.getId())
             .uploadHeaderTitle(dto.getUploadHeaderTitle())
