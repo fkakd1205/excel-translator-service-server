@@ -22,7 +22,9 @@ public class ExcelTranslatorHeaderDto {
     private UUID id;
     private String uploadHeaderTitle;
     private String downloadHeaderTitle;
+    @Builder.Default
     private ExcelTranslatorUploadHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorUploadHeaderDetailDto();
+    @Builder.Default
     private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
     private Integer rowStartNumber;
 
