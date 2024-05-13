@@ -18,10 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.excel_translator_service.server.model.excel_data.dto.DetailDto;
 import com.excel_translator_service.server.model.excel_data.dto.RowDto;
 
+
 @Service
 public class PoiTestService {
+    private static final int CELL_CHAR_MAX_SIZE = 255;   // cell의 최대 글자 수
+	private static final int CELL_WIDTH_PER_CHAR = 256;   // 한 글자당 가로 길이
 
-    public List<RowDto> uploadExcelFile(MultipartFile file) {
+    public List<RowDto> uploadExcelFile(MultipartFile file) throws IOException {
         Workbook workbook = null;
         List<RowDto> excelDto = null;
 
@@ -86,13 +89,17 @@ public class PoiTestService {
         Row row = null;
         Cell cell = null;
 
+		// Row 사이즈만큼 행 생성
         for(int i = 0; i < rowDtos.size(); i++) {
             row = sheet.createRow(i);
             List<DetailDto> detailDtos = rowDtos.get(i).getDetails();
+            sheet.autoSizeColumn(i);
             
+            // 한 Row에 표시할 Cell 데이터만큼 반복
             for(int j = 0; j < detailDtos.size(); j++) {
                 cell = row.createCell(j);
-                sheet.autoSizeColumn(j);
+                // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
+                sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 100));
                 cell.setCellValue(detailDtos.get(j).getColData().toString());
             }
         }

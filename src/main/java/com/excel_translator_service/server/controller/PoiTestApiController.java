@@ -44,8 +44,8 @@ public class PoiTestApiController {
 
     @PostMapping("/download")
     public void downloadUploadedDetails(HttpServletResponse response, @RequestBody List<RowDto> rowDtos) {
-        response.setContentType("ms-vnd/excel");
-        response.setHeader("Content-Disposition", "attachment;filename=cheago_excel.xlsx");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment");
         
         try{
             Workbook workbook = poiTestService.downloadExcelFile(rowDtos);
