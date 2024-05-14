@@ -17,6 +17,7 @@ import com.excel_translator_service.server.service.excel_translator.ExcelTransla
 import lombok.RequiredArgsConstructor;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -183,7 +184,8 @@ public class ExcelTranslatorApiController {
         response.setHeader("Content-Disposition", "attachment;filename=uploader_sample.xlsx");
         
         try{
-            Workbook workbook = excelTranslatorHeaderService.getWorkbookForTranslatorUploaderForm(headerId);
+            Workbook workbook = new XSSFWorkbook();     // .xlsx
+            excelTranslatorHeaderService.getWorkbookForTranslatorUploaderForm(workbook, headerId);
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException e) {
@@ -205,7 +207,8 @@ public class ExcelTranslatorApiController {
         response.setHeader("Content-Disposition", "attachment;filename=example.xlsx");
         
         try{
-            Workbook workbook = excelTranslatorHeaderService.getWorkbookForTranslatedData(headerId, dtos);
+            Workbook workbook = new XSSFWorkbook();     // .xlsx
+            excelTranslatorHeaderService.getWorkbookForTranslatedData(workbook, headerId, dtos);
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException e) {

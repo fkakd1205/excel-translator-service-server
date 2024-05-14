@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +49,8 @@ public class PoiTestApiController {
         response.setHeader("Content-Disposition", "attachment");
         
         try{
-            Workbook workbook = poiTestService.downloadExcelFile(rowDtos);
+            Workbook workbook = new XSSFWorkbook();
+            poiTestService.downloadExcelFile(workbook, rowDtos);
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException e) {

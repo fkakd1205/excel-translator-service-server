@@ -11,7 +11,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,25 +81,29 @@ public class PoiTestService {
         return dtos;
     }
 
-    public Workbook downloadExcelFile(List<RowDto> rowDtos) {
-        // Workbook, Sheet 생성
-        Workbook workbook = new XSSFWorkbook();     // .xlsx
+    public Workbook downloadExcelFile(Workbook workbook, List<RowDto> rowDtos) {
+        // Sheet 생성
         Sheet sheet = workbook.createSheet("Sheet1");
         Row row = null;
         Cell cell = null;
+        int rowSize = rowDtos.size();
 
 		// Row 사이즈만큼 행 생성
-        for(int i = 0; i < rowDtos.size(); i++) {
+        for(int i = 0; i < rowSize; i++) {
             row = sheet.createRow(i);
             List<DetailDto> detailDtos = rowDtos.get(i).getDetails();
-            sheet.autoSizeColumn(i);
             
             // 한 Row에 표시할 Cell 데이터만큼 반복
-            for(int j = 0; j < detailDtos.size(); j++) {
+            for(int j = 0; j < rowDtos.get(i).getDetails().size(); j++) {
                 cell = row.createCell(j);
-                // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
-                sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 100));
                 cell.setCellValue(detailDtos.get(j).getColData().toString());
+
+                // 모든 데이터를 작성했다면 셀 사이즈를 조정해준다
+                if(i == rowSize - 1) {
+                    sheet.autoSizeColumn(j);
+                    // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
+                    sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 500));
+                }
             }
         }
 
