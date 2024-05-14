@@ -35,7 +35,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ExcelTranslatorHeaderService {
-    
+    private static final int CELL_CHAR_MAX_SIZE = 255;   // cell의 최대 글자 수
+	private static final int CELL_WIDTH_PER_CHAR = 256;   // 한 글자당 가로 길이
+
     @Autowired
     private ExcelTranslatorHeaderRepository excelTranslatorHeaderRepository;
 
@@ -124,15 +126,20 @@ public class ExcelTranslatorHeaderService {
      */
     public List<UploadExcelDto> uploadExcelFile(MultipartFile file, ExcelTranslatorHeaderDto dto) {
         Workbook workbook = null;
+        List<UploadExcelDto> excelDto = null;
         try{
+            // MultipartFile을 읽어 Workbook 생성
             workbook = WorkbookFactory.create(file.getInputStream());
+            // Workbook의 첫번째 시트를 읽는다
+            Sheet sheet = workbook.getSheetAt(0);
+
+            this.checkUploaderHeaderForm(sheet, dto);
+            excelDto = this.getUploadedExcelData(sheet, dto);
+            workbook.close();
         } catch (IOException e) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("엑셀 파일 업로드 오류");
         }
         
-        Sheet sheet = workbook.getSheetAt(0);
-        this.checkUploaderHeaderForm(sheet, dto);
-        List<UploadExcelDto> excelDto = this.getUploadedExcelData(sheet, dto);
         return excelDto;
     }
 
@@ -165,12 +172,15 @@ public class ExcelTranslatorHeaderService {
      */
     private List<UploadExcelDto> getUploadedExcelData(Sheet worksheet, ExcelTranslatorHeaderDto dto) {
         List<UploadExcelDto> dtos = new ArrayList<>();
+        int columnSize = dto.getUploadHeaderDetail().getDetails().size();
 
+        // sheet의 Row 개수만큼 반복
         for(int i = dto.getRowStartNumber(); i < worksheet.getPhysicalNumberOfRows(); i++) {
             Row row = worksheet.getRow(i);
             List<UploadedDetailDto> uploadedDetailDtos = new ArrayList<>();
 
-            for(int j = 0; j < row.getLastCellNum(); j++) {
+            // columnSize만큼 반복
+            for(int j = 0; j < columnSize; j++) {
                 Cell cell = row.getCell(j);
                 Object cellObj = new Object();
 
@@ -245,12 +255,11 @@ public class ExcelTranslatorHeaderService {
      * @return Workbook
      */
     @Transactional(readOnly = true)
-    public Workbook getWorkbookForTranslatorUploaderForm(UUID headerId) {
+    public Workbook getWorkbookForTranslatorUploaderForm(Workbook workbook, UUID headerId) {
         ExcelTranslatorHeaderDto dto = this.searchOne(headerId);
         List<UploadDetailDto> detailDtos = dto.getUploadHeaderDetail().getDetails();
 
-        // 엑셀 생성
-        Workbook workbook = new XSSFWorkbook();     // .xlsx
+        // Sheet 생성
         Sheet sheet = workbook.createSheet("Sheet1");
         Row row = null;
         Cell cell = null;
@@ -259,12 +268,15 @@ public class ExcelTranslatorHeaderService {
 
         for(int i = 0; i < detailDtos.size(); i++) {
             cell = row.createCell(i);
-            sheet.autoSizeColumn(i);
             cell.setCellValue(detailDtos.get(i).getHeaderName());
+            sheet.autoSizeColumn(i);
+            // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
+            sheet.setColumnWidth(i, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(i) + 500));
         }
 
         return workbook;
     }
+
 
     /**
      * 업로드된 데이터를 엑셀변환기 양식에 따라 변환 후 다운로드 한다.
@@ -275,12 +287,11 @@ public class ExcelTranslatorHeaderService {
      * @return Workbook
      */
     @Transactional(readOnly = true)
-    public Workbook getWorkbookForTranslatedData(UUID headerId, List<UploadExcelDto> dtos) {
+    public Workbook getWorkbookForTranslatedData(Workbook workbook, UUID headerId, List<UploadExcelDto> dtos) {
         ExcelTranslatorHeaderDto dto = this.searchOne(headerId);
         List<DownloadDetailDto> downloadDetailDtos = dto.getDownloadHeaderDetail().getDetails();
         
         // 엑셀 생성
-        Workbook workbook = new XSSFWorkbook();     // .xlsx
         Sheet sheet = workbook.createSheet("Sheet1");
         int rowNum = 0;
         Row row = sheet.createRow(rowNum++);;
@@ -289,13 +300,13 @@ public class ExcelTranslatorHeaderService {
         // 날짜 변환 형식 지정
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-        
-        for (int i = 0; i < downloadDetailDtos.size(); i++) {
+        int rowSize = downloadDetailDtos.size();
+
+        for (int i = 0; i < rowSize; i++) {
             DownloadDetailDto downloadDetailDto = downloadDetailDtos.get(i);
             // 첫번째 row에 헤더 값 세팅
             row = sheet.getRow(0);
             cell = row.createCell(i);
-            sheet.autoSizeColumn(i);
             cell.setCellValue(downloadDetailDto.getHeaderName());
             
             for (int j = 0; j < dtos.size(); j++) {
@@ -305,7 +316,6 @@ public class ExcelTranslatorHeaderService {
                     row = sheet.createRow(j+1);
                 }
                 cell = row.createCell(i);
-                sheet.autoSizeColumn(i);
 
                 if (downloadDetailDto.getTargetCellNumber() == -1) {
                     cell.setCellValue(downloadDetailDto.getFixedValue());   // 고정값 컬럼이라면 설정된 고정값으로 채운다
@@ -325,6 +335,13 @@ public class ExcelTranslatorHeaderService {
                     } catch (ParseException e) {
                         throw new CustomExcelFileUploadException("데이터 변환에 오류. 다시 시도해주세요.");
                     }
+                }
+
+                // 모든 데이터를 작성했다면 셀 사이즈를 조정해준다
+                if(i == rowSize - 1) {
+                    sheet.autoSizeColumn(j);
+                    // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
+                    sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 500));
                 }
             }
         }
