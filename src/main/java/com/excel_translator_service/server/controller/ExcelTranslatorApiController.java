@@ -180,8 +180,8 @@ public class ExcelTranslatorApiController {
      */
     @GetMapping("/header/upload-form/download/{headerId}")
     public void downloadUploadedDetails(HttpServletResponse response, @PathVariable UUID headerId) {
-        response.setContentType("ms-vnd/excel");
-        response.setHeader("Content-Disposition", "attachment;filename=uploader_sample.xlsx");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment");
         
         try{
             Workbook workbook = new XSSFWorkbook();     // .xlsx
@@ -203,8 +203,8 @@ public class ExcelTranslatorApiController {
      */
     @PostMapping("/download/{headerId}")
     public void downloadExcelFile(HttpServletResponse response, @PathVariable UUID headerId, @RequestBody List<UploadExcelDto> dtos) {        
-        response.setContentType("ms-vnd/excel");
-        response.setHeader("Content-Disposition", "attachment;filename=example.xlsx");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment");
         
         try{
             Workbook workbook = new XSSFWorkbook();     // .xlsx
