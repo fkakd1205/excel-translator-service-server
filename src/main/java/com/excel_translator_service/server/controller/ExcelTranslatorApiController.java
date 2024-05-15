@@ -208,7 +208,7 @@ public class ExcelTranslatorApiController {
         
         try{
             Workbook workbook = new XSSFWorkbook();     // .xlsx
-            excelTranslatorHeaderService.getWorkbookForTranslatedData(workbook, headerId, dtos);
+            excelTranslatorHeaderService.setWorkbookForTranslatedData(workbook, headerId, dtos);
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException e) {

@@ -56,12 +56,12 @@ public class ExcelTranslatorHeaderEntity {
 
     @Setter
     @Type(type = "json")
-    @Column(name = "upload_header_detail", columnDefinition = "json")
+    @Column(name = "upload_header_detail")
     private ExcelTranslatorUploadHeaderDetailDto uploadHeaderDetail = new ExcelTranslatorUploadHeaderDetailDto();
 
     @Setter
     @Type(type = "json")
-    @Column(name = "download_header_detail", columnDefinition = "json")
+    @Column(name = "download_header_detail")
     private ExcelTranslatorDownloadHeaderDetailDto downloadHeaderDetail = new ExcelTranslatorDownloadHeaderDetailDto();
 
     @Setter

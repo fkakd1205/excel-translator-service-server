@@ -286,7 +286,7 @@ public class ExcelTranslatorHeaderService {
      * @return Workbook
      */
     @Transactional(readOnly = true)
-    public Workbook getWorkbookForTranslatedData(Workbook workbook, UUID headerId, List<UploadExcelDto> dtos) {
+    public Workbook setWorkbookForTranslatedData(Workbook workbook, UUID headerId, List<UploadExcelDto> dtos) {
         ExcelTranslatorHeaderDto dto = this.searchOne(headerId);
         List<DownloadDetailDto> downloadDetailDtos = dto.getDownloadHeaderDetail().getDetails();
         
@@ -299,9 +299,10 @@ public class ExcelTranslatorHeaderService {
         // 날짜 변환 형식 지정
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-        int rowSize = downloadDetailDtos.size();
+        int headerSize = downloadDetailDtos.size();
 
-        for (int i = 0; i < rowSize; i++) {
+        // column을 기준으로 세로 데이터를 채워넣는다
+        for (int i = 0; i < headerSize; i++) {
             DownloadDetailDto downloadDetailDto = downloadDetailDtos.get(i);
             // 첫번째 row에 헤더 값 세팅
             row = sheet.getRow(0);
@@ -337,7 +338,7 @@ public class ExcelTranslatorHeaderService {
                 }
 
                 // 모든 데이터를 작성했다면 셀 사이즈를 조정해준다
-                if(i == rowSize - 1) {
+                if(i == headerSize - 1) {
                     sheet.autoSizeColumn(j);
                     // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
                     sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 500));
