@@ -1,8 +1,7 @@
 package com.excel_translator_service.server.model.excel_data.dto;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import org.hibernate.annotations.Type;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RowDto {
-    @Type(type = "jsonb")
-    List<DetailDto> details;
+    @Builder.Default
+    List<DetailDto> details = new ArrayList<>();
 }
 

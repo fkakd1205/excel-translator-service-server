@@ -295,11 +295,11 @@ public class ExcelTranslatorHeaderService {
         int rowNum = 0;
         Row row = sheet.createRow(rowNum++);;
         Cell cell = null;
+        int headerSize = downloadDetailDtos.size();
     
         // 날짜 변환 형식 지정
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-        int headerSize = downloadDetailDtos.size();
 
         // column을 기준으로 세로 데이터를 채워넣는다
         for (int i = 0; i < headerSize; i++) {
@@ -308,6 +308,7 @@ public class ExcelTranslatorHeaderService {
             row = sheet.getRow(0);
             cell = row.createCell(i);
             cell.setCellValue(downloadDetailDto.getHeaderName());
+            int targetCellNum = downloadDetailDto.getTargetCellNumber();
             
             for (int j = 0; j < dtos.size(); j++) {
                 // 엑셀 데이터는 header의 다음 row부터 기입
@@ -317,10 +318,10 @@ public class ExcelTranslatorHeaderService {
                 }
                 cell = row.createCell(i);
 
-                if (downloadDetailDto.getTargetCellNumber() == -1) {
+                if (targetCellNum == -1) {
                     cell.setCellValue(downloadDetailDto.getFixedValue());   // 고정값 컬럼이라면 설정된 고정값으로 채운다
                 } else {
-                    UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(downloadDetailDto.getTargetCellNumber());
+                    UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(targetCellNum);
 
                     try {
                         String cellType = detailDto.getCellType();
