@@ -1,11 +1,5 @@
 package com.excel_translator_service.server.controller;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletResponse;
-
 import com.excel_translator_service.server.exception.CustomExcelFileUploadException;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDto;
 import com.excel_translator_service.server.model.excel_translator_header.dto.DownloadDetailDto;
@@ -13,24 +7,19 @@ import com.excel_translator_service.server.model.excel_translator_header.dto.Exc
 import com.excel_translator_service.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.excel_translator_service.server.model.message.Message;
 import com.excel_translator_service.server.service.excel_translator.ExcelTranslatorHeaderService;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/excel-translator")
@@ -199,7 +188,7 @@ public class ExcelTranslatorApiController {
      * @param response : HttpServletResponse
      * @param headerId : UUID
      * @param dtos : List::UploadExcelDto::
-     * @see ExcelTranslatorHeaderService#getWorkbookForTranslatedData
+     * @see ExcelTranslatorHeaderService#setWorkbookForTranslatedData
      */
     @PostMapping("/download/{headerId}")
     public void downloadExcelFile(HttpServletResponse response, @PathVariable UUID headerId, @RequestBody List<UploadExcelDto> dtos) {        
@@ -207,10 +196,11 @@ public class ExcelTranslatorApiController {
         response.setHeader("Content-Disposition", "attachment");
         
         try{
-            Workbook workbook = new XSSFWorkbook();     // .xlsx
+            Workbook workbook = new SXSSFWorkbook(1000);     // .xlsx, 메모리에 1000개 행 유지
             excelTranslatorHeaderService.setWorkbookForTranslatedData(workbook, headerId, dtos);
             workbook.write(response.getOutputStream());
             workbook.close();
+            ((SXSSFWorkbook)workbook).dispose();
         } catch (IOException e) {
             throw new IllegalArgumentException();
         }

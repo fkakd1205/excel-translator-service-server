@@ -1,15 +1,5 @@
 package com.excel_translator_service.server.service.excel_translator;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import com.excel_translator_service.server.exception.CustomExcelFileUploadException;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDataDetailDto;
 import com.excel_translator_service.server.model.excel_translator_data.dto.UploadExcelDto;
@@ -19,18 +9,17 @@ import com.excel_translator_service.server.model.excel_translator_header.dto.Exc
 import com.excel_translator_service.server.model.excel_translator_header.dto.UploadDetailDto;
 import com.excel_translator_service.server.model.excel_translator_header.entity.ExcelTranslatorHeaderEntity;
 import com.excel_translator_service.server.model.excel_translator_header.repository.ExcelTranslatorHeaderRepository;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ExcelTranslatorHeaderService {
@@ -276,73 +265,60 @@ public class ExcelTranslatorHeaderService {
         return workbook;
     }
 
-
-    /**
-     * 업로드된 데이터를 엑셀변환기 양식에 따라 변환 후 다운로드 한다.
-     * 
-     * @param headerId : UUID
-     * @param dtos : List::UploadExcelDto::
-     * @see ExcelTranslatorHeaderService#searchOne
-     * @return Workbook
-     */
     @Transactional(readOnly = true)
     public Workbook setWorkbookForTranslatedData(Workbook workbook, UUID headerId, List<UploadExcelDto> dtos) {
         ExcelTranslatorHeaderDto dto = this.searchOne(headerId);
         List<DownloadDetailDto> downloadDetailDtos = dto.getDownloadHeaderDetail().getDetails();
-        
+        List<DownloadDetailDto> targetCellNumbers = new ArrayList<>();
+
         // 엑셀 생성
         Sheet sheet = workbook.createSheet("Sheet1");
         int rowNum = 0;
         Row row = sheet.createRow(rowNum++);;
         Cell cell = null;
         int headerSize = downloadDetailDtos.size();
-    
+
         // 날짜 변환 형식 지정
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 
-        // column을 기준으로 세로 데이터를 채워넣는다
+        // 헤더 설정
         for (int i = 0; i < headerSize; i++) {
-            DownloadDetailDto downloadDetailDto = downloadDetailDtos.get(i);
             // 첫번째 row에 헤더 값 세팅
             row = sheet.getRow(0);
             cell = row.createCell(i);
-            cell.setCellValue(downloadDetailDto.getHeaderName());
-            int targetCellNum = downloadDetailDto.getTargetCellNumber();
-            
-            for (int j = 0; j < dtos.size(); j++) {
-                // 엑셀 데이터는 header의 다음 row부터 기입
-                row = sheet.getRow(j+1);
-                if (row == null) {
-                    row = sheet.createRow(j+1);
-                }
-                cell = row.createCell(i);
+            cell.setCellValue(downloadDetailDtos.get(i).getHeaderName());
+        }
+
+        // 엑셀 데이터 설정
+        for (int i = 1; i < dtos.size()+1; i++) {
+            row = sheet.createRow(i);
+
+            for (int j = 0; j < headerSize; j++) {
+                DownloadDetailDto downloadDetailDto = downloadDetailDtos.get(j);
+                cell = row.createCell(j);
+
+                int targetCellNum = downloadDetailDto.getTargetCellNumber();
 
                 if (targetCellNum == -1) {
                     cell.setCellValue(downloadDetailDto.getFixedValue());   // 고정값 컬럼이라면 설정된 고정값으로 채운다
-                } else {
-                    UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(targetCellNum);
-
-                    try {
-                        String cellType = detailDto.getCellType();
-                        if (cellType.equals("String")) {
-                            cell.setCellValue(detailDto.getColData().toString());
-                        } else if (cellType.equals("Date")) {
-                            Date data = format.parse(detailDto.getColData().toString());
-                            cell.setCellValue(outputFormat.format(data));
-                        } else if (cellType.equals("Double")) {
-                            cell.setCellValue((int)detailDto.getColData());
-                        }
-                    } catch (ParseException e) {
-                        throw new CustomExcelFileUploadException("데이터 변환에 오류. 다시 시도해주세요.");
-                    }
+                    continue;
                 }
 
-                // 모든 데이터를 작성했다면 셀 사이즈를 조정해준다
-                if(i == headerSize - 1) {
-                    sheet.autoSizeColumn(j);
-                    // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
-                    sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 500));
+                UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(targetCellNum);
+
+                try {
+                    String cellType = detailDto.getCellType();
+                    if (cellType.equals("String")) {
+                        cell.setCellValue(detailDto.getColData().toString());
+                    } else if (cellType.equals("Date")) {
+                        Date data = format.parse(detailDto.getColData().toString());
+                        cell.setCellValue(outputFormat.format(data));
+                    } else if (cellType.equals("Double")) {
+                        cell.setCellValue((int) detailDto.getColData());
+                    }
+                } catch (ParseException e) {
+                    throw new CustomExcelFileUploadException("데이터 변환에 오류. 다시 시도해주세요.");
                 }
             }
         }
