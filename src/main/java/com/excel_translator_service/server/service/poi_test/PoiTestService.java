@@ -1,21 +1,14 @@
 package com.excel_translator_service.server.service.poi_test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import com.excel_translator_service.server.model.excel_data.dto.DetailDto;
+import com.excel_translator_service.server.model.excel_data.dto.RowDto;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.excel_translator_service.server.model.excel_data.dto.DetailDto;
-import com.excel_translator_service.server.model.excel_data.dto.RowDto;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -36,6 +29,7 @@ public class PoiTestService {
             excelDto = this.getUploadedExcelData(sheet);
             workbook.close();
         } catch (IOException e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("엑셀 파일 업로드 오류");
         }
         
@@ -100,7 +94,7 @@ public class PoiTestService {
 
                 // 모든 데이터를 작성했다면 셀 사이즈를 조정해준다
                 if(i == rowSize - 1) {
-                    sheet.autoSizeColumn(j);
+                    // sheet.autoSizeColumn(j);
                     // 엑셀 cell의 최대 가로 사이즈는 (CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR)
                     sheet.setColumnWidth(j, Math.min(CELL_CHAR_MAX_SIZE * CELL_WIDTH_PER_CHAR, sheet.getColumnWidth(j) + 500));
                 }

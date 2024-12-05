@@ -5,7 +5,9 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/poi-test")
 @RequiredArgsConstructor
+@Slf4j
 public class PoiTestApiController {
     private final PoiTestService poiTestService;
 
@@ -49,12 +52,56 @@ public class PoiTestApiController {
         response.setHeader("Content-Disposition", "attachment");
         
         try{
+            Workbook workbook = new SXSSFWorkbook(1000);
+            poiTestService.downloadExcelFile(workbook, rowDtos);
+            workbook.write(response.getOutputStream());
+            workbook.close();
+            ((SXSSFWorkbook)workbook).dispose();
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    @PostMapping("/sxssf")
+    public void sxssfDownload(HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+        Message message = new Message();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment");
+
+        log.info("start");
+        try{
+            List<RowDto> rowDtos = poiTestService.uploadExcelFile(file);
+            Workbook workbook = new SXSSFWorkbook(1000);
+
+            poiTestService.downloadExcelFile(workbook, rowDtos);
+            workbook.write(response.getOutputStream());
+            workbook.close();
+            ((SXSSFWorkbook)workbook).dispose();
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
+        log.info("end");
+    }
+
+    @PostMapping("/xssf")
+    public void xssfDownload(HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+        Message message = new Message();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment");
+
+        log.info("start");
+        try{
+            List<RowDto> rowDtos = poiTestService.uploadExcelFile(file);
             Workbook workbook = new XSSFWorkbook();
+
             poiTestService.downloadExcelFile(workbook, rowDtos);
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException e) {
             throw new IllegalArgumentException();
         }
+        log.info("end");
     }
 }

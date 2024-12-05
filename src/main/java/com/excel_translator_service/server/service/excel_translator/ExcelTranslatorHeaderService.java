@@ -305,7 +305,7 @@ public class ExcelTranslatorHeaderService {
                     continue;
                 }
 
-                UploadedDetailDto detailDto = dtos.get(j).getUploadedData().getDetails().get(targetCellNum);
+                UploadedDetailDto detailDto = dtos.get(i-1).getUploadedData().getDetails().get(targetCellNum);
 
                 try {
                     String cellType = detailDto.getCellType();
