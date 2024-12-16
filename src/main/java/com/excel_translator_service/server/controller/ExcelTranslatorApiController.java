@@ -32,17 +32,11 @@ public class ExcelTranslatorApiController {
      * (업로드 양식, 다운로드 양식, 데이터 시작)을 저장한다
      * 
      * @param dto : ExcelTranslatorHeaderDto
-     * @see ExcelTranslatorHeaderSerivce#createTitle
+     * @see ExcelTranslatorHeaderService#createTitle
      */
     @PostMapping("/one")
-    public ResponseEntity<?> createTitle(@RequestBody ExcelTranslatorHeaderDto dto) {
-        Message message = new Message();
-
+    public void createTitle(@RequestBody ExcelTranslatorHeaderDto dto) {
         excelTranslatorHeaderService.createTitle(dto);
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
@@ -51,14 +45,8 @@ public class ExcelTranslatorApiController {
      * @see ExcelTranslatorHeaderService#searchAll
      */
     @GetMapping("/all")
-    public ResponseEntity<?> searchAll() {
-        Message message = new Message();
-
-        message.setData(excelTranslatorHeaderService.searchAll());
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
+    public Object searchAll() {
+        return excelTranslatorHeaderService.searchAll();
     }
 
     /**
@@ -68,14 +56,8 @@ public class ExcelTranslatorApiController {
      * @see ExcelTranslatorHeaderService#changeOne
      */
     @PutMapping("/one")
-    public ResponseEntity<?> changeTitle(@RequestBody ExcelTranslatorHeaderDto dto) {
-        Message message = new Message();
-
+    public void changeTitle(@RequestBody ExcelTranslatorHeaderDto dto) {
         excelTranslatorHeaderService.changeOne(dto);
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
@@ -85,14 +67,8 @@ public class ExcelTranslatorApiController {
      * @see ExcelTranslatorHeaderService#deleteOne
      */
     @DeleteMapping("/one/{headerId}")
-    public ResponseEntity<?> deleteOne(@PathVariable UUID headerId) {
-        Message message = new Message();
-
+    public void deleteOne(@PathVariable UUID headerId) {
         excelTranslatorHeaderService.deleteOne(headerId);
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
@@ -104,20 +80,14 @@ public class ExcelTranslatorApiController {
      * @see ExcelTranslatorHeaderService#uploadExcelFile
      */
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadExcelFile(@RequestParam("file") MultipartFile file, @RequestPart ExcelTranslatorHeaderDto dto) {
-        Message message = new Message();
-
+    public Object uploadExcelFile(@RequestParam("file") MultipartFile file, @RequestPart ExcelTranslatorHeaderDto dto) {
         try{
-            message.setData(excelTranslatorHeaderService.uploadExcelFile(file, dto));
-            message.setStatus(HttpStatus.OK);
-            message.setMessage("success");
+            return excelTranslatorHeaderService.uploadExcelFile(file, dto);
         } catch (IllegalArgumentException e) {
             throw new CustomExcelFileUploadException("설정된 양식과 동일한 엑셀 파일을 업로드해주세요.");
         } catch (NullPointerException e) {
             throw new CustomExcelFileUploadException("설정된 양식과 동일한 엑셀 파일을 업로드해주세요.");
         }
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
@@ -125,21 +95,15 @@ public class ExcelTranslatorApiController {
      * 
      * @param headerId : UUID
      * @param dtos : List::UploadDetailDto::
-     * @see ExcelTranslatorHeaderService#updateUploadHeaderDetail
+     * @see ExcelTranslatorHeaderService#updateUploadHeaderDetails
      */
     @PutMapping("/header/upload-form/one/{headerId}")
-    public ResponseEntity<?> updateUploadHeader(@PathVariable UUID headerId, @RequestBody List<UploadDetailDto> dtos) {
-        Message message = new Message();
-
+    public void updateUploadHeader(@PathVariable UUID headerId, @RequestBody List<UploadDetailDto> dtos) {
         try {
             excelTranslatorHeaderService.updateUploadHeaderDetails(headerId, dtos);
-            message.setStatus(HttpStatus.OK);
-            message.setMessage("success");
         } catch (NullPointerException e) {
             throw new CustomExcelFileUploadException("올바르지 않은 값이 존재합니다. 다시 등록해주세요.");
         }
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
@@ -150,14 +114,8 @@ public class ExcelTranslatorApiController {
      * @see ExcelTranslatorHeaderService#updateDownloadHeaderDetail
      */
     @PutMapping("/header/download-form/one/{headerId}")
-    public ResponseEntity<?> updateDownloadHeader(@PathVariable UUID headerId, @RequestBody List<DownloadDetailDto> dtos) {
-        Message message = new Message();
-
+    public void updateDownloadHeader(@PathVariable UUID headerId, @RequestBody List<DownloadDetailDto> dtos) {
         excelTranslatorHeaderService.updateDownloadHeaderDetail(headerId, dtos);
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-
-        return new ResponseEntity<>(message, message.getStatus());
     }
 
     /**
